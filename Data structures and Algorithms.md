@@ -265,6 +265,7 @@ for(int i = n; i > 0; --i){
 }
 ```
 
+Можно завершить, если перестановок не было
 # 10. Алгоритм шейкерной сортировки (блок-схема алгоритма). 
 ```cpp
 int[] arr;
@@ -402,66 +403,57 @@ quick_sort(arr, 0, n-1);
 
 Реализация на C++
 ```cpp
-// Функция слияния двух отсортированных массивов
-void merge(int arr[], int l, int m, int r) {
-    int n1 = m - l + 1;
-    int n2 = r - m;
- 
-    // Создание временных массивов
-    int L[n1], R[n2];
- 
-    // Копирование данных во временные массивы
-    for (int i = 0; i < n1; i++)
-        L[i] = arr[l + i];
-    for (int j = 0; j < n2; j++)
-        R[j] = arr[m + 1 + j];
- 
-    // Слияние временных массивов обратно в arr[l..r]
-    int i = 0; // Индекс первого подмассива
-    int j = 0; // Индекс второго подмассива
-    int k = l; // Индекс элемента в результирующем массиве
- 
+// Слияние двух отсортированных подмассивов
+void merge(int arr[], int left, int mid, int right) {
+    int n1 = mid - left + 1;  // размер левой части
+    int n2 = right - mid;     // размер правой части
+
+    // Временные массивы
+    int* L = new int[n1];
+    int* R = new int[n2];
+
+    // Копируем данные во временные массивы
+    for (int i = 0; i < n1; ++i)
+        L[i] = arr[left + i];
+    for (int j = 0; j < n2; ++j)
+        R[j] = arr[mid + 1 + j];
+
+    // Сливаем временные массивы обратно в arr[left..right]
+    int i = 0, j = 0, k = left;
     while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
-            i++;
-        }
-        else {
-            arr[k] = R[j];
-            j++;
-        }
-        k++;
+        if (L[i] <= R[j])
+            arr[k++] = L[i++];
+        else
+            arr[k++] = R[j++];
     }
- 
-    // Копирование оставшихся элементов L[], если они есть
-    while (i < n1) {
-        arr[k] = L[i];
-        i++;
-        k++;
-    }
- 
-    // Копирование оставшихся элементов R[], если они есть
-    while (j < n2) {
-        arr[k] = R[j];
-        j++;
-        k++;
+
+    // Копируем оставшиеся элементы
+    while (i < n1)
+        arr[k++] = L[i++];
+    while (j < n2)
+        arr[k++] = R[j++];
+
+    // Освобождаем временные массивы
+    delete[] L;
+    delete[] R;
+}
+
+// Рекурсивная сортировка слиянием
+void mergeSort(int arr[], int left, int right) {
+    if (left < right) {
+        int mid = (left + right) / 2;
+
+        // Сортируем две половины
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+
+        // Сливаем отсортированные половины
+        merge(arr, left, mid, right);
     }
 }
 
-// Рекурсивная функция сортировки
-void mergeSort(int arr[], int l, int r) {
-    if (l < r) {
-        // Находим среднюю точку
-        int m = l + (r - l) / 2;
- 
-        // Сортируем первую и вторую половины
-        mergeSort(arr, l, m);
-        mergeSort(arr, m + 1, r);
- 
-        // Слияние отсортированных половин
-        merge(arr, l, m, r);
-    }
-}
+mergeSort(arr, 0, size - 1);
+
 ```
 
 # 15. Рекурсия в алгоритмах. Организация и эффективность применения. Пример рекурсивного алгоритма.
@@ -603,6 +595,74 @@ void Pop(Queue *q){
 
 ## Дек
 Двухсторонняя очередь 
+```cpp
+struct Deck {
+    int data[100];
+    int first = -1;
+    int last = 0;
+    int length = 100;
+};
+
+// Проверка: дек пуст
+bool isEmpty(Deck* d) {
+    return d->first == -1;
+}
+
+// Добавить в конец
+bool PushBack(Deck* d, int v) {
+    if ((d->last + 1) % d->length == d->first) return false; // переполнение
+
+    if (isEmpty(d)) {
+        d->first = d->last = 0;
+    } else {
+        d->last = (d->last + 1) % d->length;
+    }
+
+    d->data[d->last] = v;
+    return true;
+}
+
+// Добавить в начало
+bool PushFront(Deck* d, int v) {
+    if ((d->last + 1) % d->length == d->first) return false; // переполнение
+
+    if (isEmpty(d)) {
+        d->first = d->last = 0;
+    } else {
+        d->first = (d->first - 1 + d->length) % d->length;
+    }
+
+    d->data[d->first] = v;
+    return true;
+}
+
+// Удалить с начала
+bool PopFront(Deck* d) {
+    if (isEmpty(d)) return false;
+
+    if (d->first == d->last) {
+        d->first = -1;
+    } else {
+        d->first = (d->first + 1) % d->length;
+    }
+
+    return true;
+}
+
+// Удалить с конца
+bool PopBack(Deck* d) {
+    if (isEmpty(d)) return false;
+
+    if (d->first == d->last) {
+        d->first = -1;
+    } else {
+        d->last = (d->last - 1 + d->length) % d->length;
+    }
+
+    return true;
+}
+```
+
 
 # 17. Организация линейного списка. Программирование элементарных операций: включение и исключение элементов, проход по списку.
 ## Список
@@ -1086,6 +1146,7 @@ III:
 	до     Hl > Hr
 	после (Hl - Hr = 2) | ничего не изменилось
 
+![[Pasted image 20250713171030.png]]
 
 ```cpp
 struct Node {
@@ -1163,19 +1224,19 @@ Node* insert(Node* node, int key) {
     int balance = getBalance(node);
 
     // LL
-    if (balance > 1 && key < node->left->key)
+    if (balance > 1 && key < node->left->key) / перекос влево и добавляли влево
         return rightRotate(node);
 
     // RR
-    if (balance < -1 && key > node->right->key)
+    if (balance < -1 && key > node->right->key) перекос вправо и добавляли вправо
         return leftRotate(node);
 
     // LR
-    if (balance > 1 && key > node->left->key)
+    if (balance > 1 && key > node->left->key) перекос влево но добавляли вправо
         return leftRightRotate(node);
 
     // RL
-    if (balance < -1 && key < node->right->key)
+    if (balance < -1 && key < node->right->key) перекос право но добавляли влево
         return rightLeftRotate(node);
 
     return node;
@@ -1197,7 +1258,7 @@ Node* remove(Node* root, int key) {
     else if (key > root->key)
         root->right = remove(root->right, key);
     else {
-        if (!root->left || !root->right) {
+        if (!root->left || !root->right) { // Лучше расписать по нормальному на два уловия
             Node* temp = root->left ? root->left : root->right;
             if (!temp) {
                 temp = root;
@@ -1239,42 +1300,5 @@ Node* remove(Node* root, int key) {
     return root;
 }
 ```
-
-
-ll-поворот
-```
-     a     
-    /  \  
-   b    ar
- /  \     
-bl  br    
-
-     b    
-    /  \  
-   br   ar
- /  \     
-bl   a     
- ```
-
-a.left = b.right
-b.right = a
-a = b
-
-lr
-```
-a
-	b
-		bl
-		c
-			cl*
-			cr*
-	ar
-```
-
-b.right = c.left
-c.left =  b
-a.left = c.right
-c.right = a
-a = c
 
 
